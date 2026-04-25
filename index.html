@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="description" content="AI Stress Level Checker — answer 6 questions, get a personalized analysis. Free."/>
+<title>AI Stress Checker · AI 壓力檢測小幫手</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,'PingFang TC','Microsoft JhengHei',sans-serif;background:#f0ebe3;min-height:100vh;color:#18100a}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(240,235,227,.92);backdrop-filter:blur(10px);border-bottom:1px solid #ddd4c8;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{font-size:13px;font-weight:800;color:#1b4332;display:flex;align-items:center;gap:6px}
+.topbar-logo span{font-size:18px}
+.lang-toggle{display:flex;background:#e8dfd4;border-radius:99px;padding:3px;gap:2px}
+.lang-btn{padding:5px 12px;border:none;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:#7a6a58}
+.lang-btn.active{background:#1b4332;color:#fff;box-shadow:0 2px 6px rgba(27,67,50,.25)}
+.wrap{max-width:560px;margin:0 auto;padding:24px 14px 64px}
+.header{text-align:center;margin-bottom:24px}
+.header .icon{font-size:48px;display:block;margin-bottom:8px}
+.header h1{font-size:clamp(1.25rem,5vw,1.75rem);font-weight:800;color:#18100a;margin-bottom:6px;line-height:1.3}
+.header p{font-size:13px;color:#4a3828;line-height:1.6}
+.card{background:#fff;border-radius:18px;padding:22px 18px;box-shadow:0 3px 18px rgba(0,0,0,.09);border:1px solid #ddd4c8;margin-bottom:12px}
+.progress-row{display:flex;justify-content:space-between;margin-bottom:5px}
+.progress-row span{font-size:13px;font-weight:600;color:#4a3828}
+.done-label{color:#155724!important;font-weight:700!important}
+.progress-track{background:#e0d7cc;border-radius:99px;height:7px;overflow:hidden;margin-bottom:20px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#1b4332,#52796f);border-radius:99px;transition:width .35s}
+.q-block{margin-bottom:22px}
+.q-label{display:flex;gap:8px;align-items:flex-start;margin-bottom:12px}
+.q-num{min-width:25px;height:25px;background:#1b4332;color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:1px}
+.q-text{font-size:14px;font-weight:700;color:#18100a;line-height:1.5}
+.options{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.opt{border:2px solid #ccc3b6;border-radius:10px;padding:8px 4px 7px;background:#faf8f5;cursor:pointer;text-align:center;transition:all .12s;font-family:inherit}
+.opt:hover{filter:brightness(.95)}
+.opt:active{transform:scale(.97)}
+.opt .em{font-size:20px;display:block;margin-bottom:3px;line-height:1}
+.opt .lb{font-size:11px;font-weight:500;color:#4a3828;line-height:1.3}
+.divider{height:1px;background:linear-gradient(90deg,transparent,#c8bfb4,transparent);margin:18px 0}
+textarea{width:100%;border:1.5px solid #c4b8a8;border-radius:10px;padding:9px 11px;font-size:13px;color:#18100a;background:#faf8f5;resize:vertical;line-height:1.7;font-family:inherit}
+textarea:focus{outline:none;border-color:#1b4332;box-shadow:0 0 0 3px rgba(27,67,50,.15)}
+textarea::placeholder{color:#9e9087}
+.btn-submit{width:100%;padding:13px;background:linear-gradient(135deg,#1b4332,#2d6a4f);color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.04em;margin-top:4px;transition:all .2s}
+.btn-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,67,50,.3)}
+.btn-submit:disabled{background:#aaa69e;cursor:not-allowed}
+.btn-reset{width:100%;padding:12px;background:#fff;color:#4a3828;border:1.5px solid #c4b8a8;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:10px}
+.btn-reset:hover{background:#e8dfd4;color:#18100a}
+.error-box{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;color:#856404;font-size:13px;text-align:center;font-weight:600;margin-bottom:11px}
+.loading-card{text-align:center;padding:44px 24px}
+.disclaimer{font-size:11px;color:#5c4a38;text-align:center;line-height:1.7;margin-top:16px;padding:7px 10px;background:#f0ebe3;border-radius:8px}
+.disclaimer strong{color:#18100a}
+.meter-wrap{background:#f7f3ee;border-radius:14px;padding:18px 16px 14px;margin-bottom:18px;border:1px solid #e8dfd4;text-align:center}
+.meter-title{font-size:11px;font-weight:700;color:#7a6a58;margin-bottom:12px;letter-spacing:.06em;text-transform:uppercase}
+.meter-arc{margin:0 auto 8px;position:relative;width:180px;height:100px;overflow:hidden}
+.meter-arc canvas{display:block}
+.meter-center{position:absolute;bottom:2px;left:0;right:0;text-align:center}
+.meter-num{font-size:30px;font-weight:900;line-height:1}
+.meter-tag{font-size:13px;font-weight:800;margin-top:2px}
+.meter-range{display:flex;justify-content:space-between;font-size:10px;color:#9e9087;padding:0 6px;margin-bottom:6px}
+.meter-sub{font-size:11px;color:#7a6a58}
+.result-header{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #eae0d5}
+.result-body h2{font-size:15px;font-weight:800;color:#18100a;margin:18px 0 7px;padding-left:10px;border-left:4px solid #1b4332}
+.result-body h2:first-child{margin-top:0}
+.result-body p{font-size:14px;color:#2a1c10;line-height:1.85;margin-bottom:7px}
+.result-body ul{padding-left:0;margin-bottom:10px}
+.result-body li{font-size:14px;color:#2a1c10;line-height:1.8;margin-bottom:4px;padding-left:14px;list-style:none}
+.result-body li::before{content:"• ";color:#1b4332;font-weight:700}
+.footer{text-align:center;padding:24px 14px;font-size:11px;color:#9e9087;border-top:1px solid #e0d7cc;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo"><span>🌿</span> AI Stress Checker</div>
+  <div class="lang-toggle">
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn active" id="btn-zh" onclick="setLang('zh')">中文</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="header">
+    <span class="icon">🌿</span>
+    <h1 id="hdr-title">AI 壓力檢測小幫手</h1>
+    <p id="hdr-sub">回答六個問題，獲得你專屬的壓力分析與放鬆建議</p>
+  </div>
+  <div id="app"></div>
+  <div class="footer" id="footer-text">本工具僅供自我覺察參考，不能取代專業醫療建議。</div>
+</div>
+
+<script>
+const T = {
+  zh: {
+    title: 'AI 壓力檢測小幫手',
+    sub: '回答六個問題，獲得你專屬的壓力分析與放鬆建議',
+    footer: '本工具僅供自我覺察參考，不能取代專業醫療建議。',
+    answered: n => '已回答 '+n+' / 5 題',
+    allDone: '✓ 全部完成！',
+    q6label: '今天最主要的壓力來源是什麼？',
+    q6placeholder: '例如：工作截止日、家庭關係、考試壓力……（可留空）',
+    submitBtn: '✨ 開始 AI 壓力分析',
+    submitPartial: n => '請先完成所有問題（還差 '+n+' 題）',
+    disclaimer: '<strong>免責聲明：</strong>本工具僅供自我覺察參考，不能取代醫師或心理師的專業建議。',
+    errFill: '請先回答所有五題 🙏',
+    loadingTitle: 'AI 正在分析你的壓力狀態……',
+    loadingSub: '請稍候片刻，溫暖的回應即將送達',
+    meterTitle: '壓力指數',
+    meterLow: '輕鬆', meterHigh: '嚴重',
+    levels: [
+      {color:'#28a745', tag:'低度壓力 😌', sub:'整體狀態良好，繼續保持！'},
+      {color:'#ffc107', tag:'中度壓力 😐', sub:'需要一些放鬆與自我照顧。'},
+      {color:'#fd7e14', tag:'偏高壓力 😟', sub:'建議積極調整與休息。'},
+      {color:'#dc3545', tag:'高度壓力 😰', sub:'請留意身心，尋求支持。'},
+    ],
+    reportTitle: '你的個人化壓力分析報告',
+    resultDisclaimer: '<strong>提醒：</strong>本工具僅供自我覺察參考，不能取代醫師或心理師的專業建議。若長期壓力過大，請尋求專業協助。',
+    resetBtn: '🔄 重新測試',
+    questions: [
+      '你今天感到焦慮或緊張嗎？',
+      '你最近睡眠品質如何？',
+      '你是否覺得事情太多、很難放鬆？',
+      '你是否容易生氣、難過或情緒不穩？',
+      '你是否感到身體疲累、頭痛或胸悶？',
+    ],
+    options: ['沒有','輕微','普通','明顯','嚴重','非常嚴重'],
+    promptIntro: '你是溫暖的心理健康助理，用繁體中文回覆。\n\n壓力問卷：\n',
+    promptSrc: '\n壓力來源：',
+    promptFmt: '\n\n請用Markdown格式（## 作為標題）提供：\n## 🌡️ 目前壓力狀態\n## 🔍 可能壓力來源\n## 💛 身體與情緒提醒\n## 🌿 三個立即可做的放鬆方法\n## ✨ 鼓勵的話',
+    promptHigh: '\n\n如果壓力很高，請提醒使用者尋求家人、朋友或專業心理師的幫助。',
+    promptStyle: '\n\n語氣溫暖平和，像關心的朋友，不用醫療診斷語言。',
+    promptNoSrc: '未填寫',
+    errServer: '伺服器錯誤，請稍後再試。',
+  },
+  en: {
+    title: 'AI Stress Level Checker',
+    sub: 'Answer 6 questions and get your personalized stress analysis — free',
+    footer: 'For self-awareness only. Not a substitute for professional medical advice.',
+    answered: n => n+' / 5 answered',
+    allDone: '✓ All done!',
+    q6label: "What's your main source of stress today?",
+    q6placeholder: 'e.g. work deadline, family, health, exams… (optional)',
+    submitBtn: '✨ Get My AI Analysis',
+    submitPartial: n => 'Please answer all questions ('+n+' left)',
+    disclaimer: '<strong>Disclaimer:</strong> For self-awareness only. Not a substitute for professional medical advice.',
+    errFill: 'Please answer all 5 questions first 🙏',
+    loadingTitle: 'AI is analyzing your stress…',
+    loadingSub: 'Just a moment, your personalized report is coming',
+    meterTitle: 'STRESS LEVEL',
+    meterLow: 'Low', meterHigh: 'High',
+    levels: [
+      {color:'#28a745', tag:'Low Stress 😌', sub:"You're doing well — keep it up!"},
+      {color:'#ffc107', tag:'Moderate Stress 😐', sub:'Some relaxation and self-care would help.'},
+      {color:'#fd7e14', tag:'Elevated Stress 😟', sub:'Consider taking active steps to rest and recharge.'},
+      {color:'#dc3545', tag:'High Stress 😰', sub:'Please take care of yourself and seek support.'},
+    ],
+    reportTitle: 'Your Personalized Stress Report',
+    resultDisclaimer: '<strong>Reminder:</strong> For self-awareness only. Not a substitute for professional advice. If stress persists, please seek help.',
+    resetBtn: '🔄 Check Again',
+    questions: [
+      'Do you feel anxious or tense today?',
+      'How has your sleep quality been recently?',
+      'Do you feel overwhelmed and unable to relax?',
+      'Are you easily irritable, sad, or emotionally unstable?',
+      'Do you feel physically tired, have headaches, or chest tightness?',
+    ],
+    options: ['None','Mild','Moderate','Noticeable','Severe','Very Severe'],
+    promptIntro: 'You are a warm and supportive mental health assistant. Reply in English.\n\nStress questionnaire:\n',
+    promptSrc: '\nMain stress source: ',
+    promptFmt: '\n\nProvide a warm supportive stress analysis using Markdown (## for headers):\n## 🌡️ Current Stress Level\n## 🔍 Possible Stress Sources\n## 💛 Physical & Emotional Reminders\n## 🌿 Three Immediate Relaxation Techniques\n## ✨ Words of Encouragement',
+    promptHigh: '\n\nIf stress is high, remind the user to seek support from family, friends, or a mental health professional.',
+    promptStyle: '\n\nUse a warm, calm tone — like a caring friend, not a medical diagnosis.',
+    promptNoSrc: 'Not provided',
+    errServer: 'Server error, please try again later.',
+  }
+};
+
+const EMOJIS = [
+  {emoji:'😌',bg:'#d4edda',bd:'#28a745',tx:'#155724'},
+  {emoji:'🙂',bg:'#e9f7df',bd:'#7cb342',tx:'#33691e'},
+  {emoji:'😐',bg:'#fff3cd',bd:'#ffc107',tx:'#856404'},
+  {emoji:'😟',bg:'#ffe5cc',bd:'#fd7e14',tx:'#7b3000'},
+  {emoji:'😰',bg:'#f8d7da',bd:'#dc3545',tx:'#721c24'},
+  {emoji:'😫',bg:'#e8d5f5',bd:'#6f42c1',tx:'#3d1a78'},
+];
+
+let S = { lang:'zh', phase:'form', answers:[-1,-1,-1,-1,-1], src:'', result:'', error:'' };
+
+function tx() { return T[S.lang]; }
+function update(patch) { Object.assign(S,patch); render(); }
+
+function setLang(lang) {
+  document.getElementById('btn-en').className='lang-btn'+(lang==='en'?' active':'');
+  document.getElementById('btn-zh').className='lang-btn'+(lang==='zh'?' active':'');
+  document.getElementById('hdr-title').textContent=T[lang].title;
+  document.getElementById('hdr-sub').textContent=T[lang].sub;
+  document.getElementById('footer-text').textContent=T[lang].footer;
+  const phase = S.phase==='result' ? 'form' : S.phase;
+  update({lang, phase, result:'', answers:[-1,-1,-1,-1,-1], src:'', error:''});
+}
+
+function render() {
+  document.getElementById('app').innerHTML = ({form:formHTML, loading:loadingHTML, result:resultHTML})[S.phase]();
+}
+
+function formHTML() {
+  const t=tx(), count=S.answers.filter(a=>a>=0).length, done=count===5, pct=count/5*100;
+  const qs = t.questions.map((q,qi)=>{
+    const sel=S.answers[qi];
+    const opts=EMOJIS.map((e,vi)=>{
+      const on=sel===vi;
+      const style=on?`border-color:${e.bd};background:${e.bg};transform:scale(1.04)`:'';
+      return `<button class="opt" onclick="pickAns(${qi},${vi})" style="${style}">
+        <span class="em">${e.emoji}</span>
+        <span class="lb" style="color:${on?e.tx:'#4a3828'};font-weight:${on?800:500}">${t.options[vi]}</span>
+      </button>`;
+    }).join('');
+    return `<div class="q-block">
+      <div class="q-label"><span class="q-num">${qi+1}</span><span class="q-text">${q}</span></div>
+      <div class="options">${opts}</div>
+    </div>${qi<4?'<div class="divider"></div>':''}`;
+  }).join('');
+
+  return `<div class="card">
+    <div class="progress-row">
+      <span>${t.answered(count)}</span>
+      ${done?`<span class="done-label">${t.allDone}</span>`:'<span></span>'}
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    ${qs}
+    <div class="divider"></div>
+    <div class="q-block">
+      <div class="q-label"><span class="q-num">6</span><span class="q-text">${t.q6label}</span></div>
+      <textarea rows="3" maxlength="300" placeholder="${t.q6placeholder}" oninput="S.src=this.value">${S.src}</textarea>
+    </div>
+    ${S.error?`<div class="error-box">⚠️ ${S.error}</div>`:''}
+    <button class="btn-submit" ${done?'':'disabled'} onclick="submitForm()">
+      ${done?t.submitBtn:t.submitPartial(5-count)}
+    </button>
+    <div class="disclaimer">${t.disclaimer}</div>
+  </div>`;
+}
+
+function loadingHTML() {
+  const t=tx();
+  return `<div class="card loading-card">
+    <div style="font-size:36px;margin-bottom:14px">🌱</div>
+    <p style="font-size:16px;font-weight:700;color:#18100a;margin-bottom:5px">${t.loadingTitle}</p>
+    <p style="font-size:13px;color:#5c4a38">${t.loadingSub}</p>
+  </div>`;
+}
+
+function meterHTML(score) {
+  const t=tx(), pct=Math.round((score/25)*100), lvl=pct<=30?0:pct<=55?1:pct<=75?2:3;
+  const {color,tag,sub}=t.levels[lvl];
+  return `<div class="meter-wrap">
+    <div class="meter-title">${t.meterTitle}</div>
+    <div class="meter-arc">
+      <canvas id="mc" width="180" height="100"></canvas>
+      <div class="meter-center">
+        <div class="meter-num" style="color:${color}">${score}</div>
+        <div class="meter-tag" style="color:${color}">${tag}</div>
+      </div>
+    </div>
+    <div class="meter-range"><span>0 ${t.meterLow}</span><span>25 ${t.meterHigh}</span></div>
+    <div class="meter-sub">${sub}</div>
+  </div>
+  <script>(function(){
+    var c=document.getElementById('mc');if(!c)return;
+    var ctx=c.getContext('2d');
+    ctx.beginPath();ctx.arc(90,95,72,Math.PI,2*Math.PI);
+    ctx.strokeStyle='#e8dfd4';ctx.lineWidth=14;ctx.lineCap='round';ctx.stroke();
+    ctx.beginPath();ctx.arc(90,95,72,Math.PI,Math.PI+(Math.PI*(${pct}/100)));
+    ctx.strokeStyle='${color}';ctx.lineWidth=14;ctx.lineCap='round';ctx.stroke();
+  })();<\/script>`;
+}
+
+function resultHTML() {
+  const t=tx(), score=S.answers.reduce((s,a)=>s+a,0);
+  return `<div class="card">
+    <div class="result-header">
+      <div style="font-size:38px;margin-bottom:5px">🌿</div>
+      <div style="font-size:17px;font-weight:800;color:#18100a">${t.reportTitle}</div>
+    </div>
+    ${meterHTML(score)}
+    <div class="result-body">${parseMd(S.result)}</div>
+    <div class="disclaimer">${t.resultDisclaimer}</div>
+  </div>
+  <button class="btn-reset" onclick="resetForm()">${t.resetBtn}</button>`;
+}
+
+function parseMd(text) {
+  let out='',inList=false;
+  for (const line of text.split('\n')) {
+    const t=line.trim();
+    if(!t){if(inList){out+='</ul>';inList=false;}out+='<div style="height:5px"></div>';continue;}
+    if(t.startsWith('## ')){if(inList){out+='</ul>';inList=false;}out+=`<h2>${t.slice(3)}</h2>`;continue;}
+    if(t.startsWith('- ')||/^\d+\.\s/.test(t)){if(!inList){out+='<ul>';inList=true;}out+=`<li>${t.replace(/^[-\d.]+\s*/,'')}</li>`;continue;}
+    if(inList){out+='</ul>';inList=false;}
+    out+=`<p>${t}</p>`;
+  }
+  if(inList)out+='</ul>';
+  return out;
+}
+
+function pickAns(qi,v) { const a=[...S.answers];a[qi]=v;update({answers:a}); }
+
+async function submitForm() {
+  const t=tx();
+  if(!S.answers.every(a=>a>=0)){update({error:t.errFill});return;}
+  update({phase:'loading',error:''});
+  const score=S.answers.reduce((s,a)=>s+a,0);
+  const summary=t.questions.map((q,i)=>q+' → '+t.options[S.answers[i]]).join('\n');
+  const prompt=t.promptIntro+summary+t.promptSrc+(S.src.trim()||t.promptNoSrc)+t.promptFmt+(score>=15?t.promptHigh:'')+t.promptStyle;
+  try {
+    const res=await fetch('/api/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data?.error||t.errServer);
+    if(!data.text)throw new Error(t.errServer);
+    update({result:data.text,phase:'result'});
+  } catch(e){
+    update({phase:'form',error:String(e.message)});
+  }
+}
+
+function resetForm() {
+  update({answers:[-1,-1,-1,-1,-1],src:'',result:'',error:'',phase:'form'});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+render();
+</script>
+</body>
+</html>
